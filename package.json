@@ -1,0 +1,160 @@
+{
+  "name": "idem-compilation",
+  "displayName": "IDEM Compilation",
+  "description": "Extension pour gérer la compilation depuis IDEM VSCode",
+  "version": "0.0.1",
+  "publisher": "vscode-samples",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "idem-explorer",
+          "title": "IDEM",
+          "icon": "media/compiler.svg"
+        }
+      ]
+    },
+    "views": {
+      "idem-explorer": [
+        {
+          "id": "nodeDependencies",
+          "name": "Node Dependencies",
+          "icon": "media/compiler.svg",
+          "contextualTitle": "Package Explorer"
+        },
+        {
+          "id": "compilation",
+          "name": "Compilations",
+          "icon": "media/compiler.svg",
+          "contextualTitle": "Toto Explorer"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "nodeDependencies.refreshEntry",
+        "title": "Refresh",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "nodeDependencies.addEntry",
+        "title": "Add"
+      },
+      {
+        "command": "nodeDependencies.editEntry",
+        "title": "Edit",
+        "icon": {
+          "light": "resources/light/edit.svg",
+          "dark": "resources/dark/edit.svg"
+        }
+      },
+      {
+        "command": "nodeDependencies.deleteEntry",
+        "title": "Delete"
+      },
+      {
+        "command": "compilation.refreshEntry",
+        "title": "Refresh",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "compilation.addEntry",
+        "title": "Add"
+      },
+      {
+        "command": "compilation.editEntry",
+        "title": "Edit",
+        "icon": {
+          "light": "resources/light/edit.svg",
+          "dark": "resources/dark/edit.svg"
+        }
+      },
+      {
+        "command": "compilation.deleteEntry",
+        "title": "Delete"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "nodeDependencies.refreshEntry",
+          "when": "view == nodeDependencies",
+          "group": "navigation"
+        },
+        {
+          "command": "nodeDependencies.addEntry",
+          "when": "view == nodeDependencies"
+        },
+        {
+          "command": "compilation.refreshEntry",
+          "when": "view == compilation",
+          "group": "navigation"
+        },
+        {
+          "command": "compilation.addEntry",
+          "when": "view == compilation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "nodeDependencies.editEntry",
+          "when": "view == nodeDependencies && viewItem == dependency",
+          "group": "inline"
+        },
+        {
+          "command": "nodeDependencies.deleteEntry",
+          "when": "view == nodeDependencies && viewItem == dependency"
+        },
+        {
+          "command": "compilation.editEntry",
+          "when": "view == compilation && viewItem == dependency",
+          "group": "inline"
+        },
+        {
+          "command": "compilation.deleteEntry",
+          "when": "view == compilation && viewItem == dependency"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint \"src/**/*.ts\""
+  },
+  "devDependencies": {
+    "@types/ftp": "^0.3.33",
+    "@types/mkdirp": "^0.5.2",
+    "@types/node": "^16.11.7",
+    "@types/rimraf": "^2.0.2",
+    "@types/vscode": "^1.73.0",
+    "@typescript-eslint/eslint-plugin": "^5.42.0",
+    "@typescript-eslint/parser": "^5.42.0",
+    "eslint": "^8.26.0",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "ftp": "^0.3.10",
+    "jsonc-parser": "^0.4.2",
+    "minimist": "^1.2.6",
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.6.2",
+    "toto": "^2.8.2"
+  }
+}
