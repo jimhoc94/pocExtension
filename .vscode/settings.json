@@ -1,12 +1,34 @@
-// Place your settings in this file to overwrite default and user settings.
 {
-    "files.exclude": {
-        "out": false // set this to true to hide the "out" folder with the compiled JS files
+  "injector.configurations": [
+    {
+      "name": "WKS_CICS",
+      "type": "CICS",
+      "commAreaIn": "CICS",
+      "commAreaOut": "CICS",
+      "transactionName": "CICS",
+      "saveLocation": "workspace",
+      "cicsRegion": "CICS",
+      "programName": "CICS",
+      "commAreaLength": 1
     },
-    "search.exclude": {
-        "out": true // set this to false to include "out" folder in search results
+    {
+      "name": "WKS_IMS1",
+      "type": "IMS",
+      "commAreaIn": "IMS",
+      "commAreaOut": "IMS",
+      "transactionName": "IMS1",
+      "saveLocation": "workspace",
+      "imsRegionName": "IMS",
+      "messageType": "IMS",
+      "testWithAnswer": true
     },
-    "typescript.tsdk": "./node_modules/typescript/lib", // we want to use the TS server from our node_modules folder to control its version
-    "typescript.tsc.autoDetect": "off",
-    "editor.insertSpaces": false,
+    {
+      "name": "AAA",
+      "type": "CICS",
+      "commAreaIn": "",
+      "commAreaOut": "",
+      "transactionName": "",
+      "saveLocation": "workspace"
+    }
+  ]
 }

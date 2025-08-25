@@ -1,0 +1,77 @@
+{
+  "folders": [
+    {
+      "path": ".."
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.fontSize": 16,
+    "injector.configurations": [
+      {
+        "name": "TEST_USER",
+        "type": "CICS",
+        "commAreaIn": "TEST",
+        "commAreaOut": "TEST",
+        "transactionName": "TEST",
+        "saveLocation": "user",
+        "cicsRegion": "TEST",
+        "programName": "TEST",
+        "commAreaLength": 1,
+        "imsRegionName": "",
+        "messageType": "",
+        "testWithAnswer": false
+      },
+      {
+        "name": "TEST01_USER",
+        "type": "CICS",
+        "commAreaIn": "TEST",
+        "commAreaOut": "TEST",
+        "transactionName": "TEST01",
+        "saveLocation": "user",
+        "cicsRegion": "TEST",
+        "programName": "TEST",
+        "commAreaLength": 1,
+        "imsRegionName": "",
+        "messageType": "",
+        "testWithAnswer": false
+      },
+      {
+        "name": "TEST02_USER",
+        "type": "CICS",
+        "commAreaIn": "TEST",
+        "commAreaOut": "TEST",
+        "transactionName": "TEST02",
+        "saveLocation": "user",
+        "cicsRegion": "TEST",
+        "programName": "TEST",
+        "commAreaLength": 1,
+        "imsRegionName": "",
+        "messageType": "",
+        "testWithAnswer": false
+      },
+      {
+        "name": "TEST03_USER",
+        "type": "CICS",
+        "commAreaIn": "TEST",
+        "commAreaOut": "TEST",
+        "transactionName": "TEST02",
+        "saveLocation": "user",
+        "cicsRegion": "TEST",
+        "programName": "TEST",
+        "commAreaLength": 1,
+        "imsRegionName": "",
+        "messageType": "",
+        "testWithAnswer": false
+      },
+      {
+        "name": "toto",
+        "type": "CICS",
+        "commAreaIn": "",
+        "commAreaOut": "",
+        "transactionName": "",
+        "saveLocation": "workspace"
+      }
+    ]
+  }
+}

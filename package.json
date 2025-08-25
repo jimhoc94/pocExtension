@@ -1,160 +1,131 @@
 {
-  "name": "idem-compilation",
-  "displayName": "IDEM Compilation",
-  "description": "Extension pour gérer la compilation depuis IDEM VSCode",
-  "version": "0.0.1",
-  "publisher": "vscode-samples",
-  "private": true,
-  "license": "MIT",
+  "name": "injector-extension",
+  "displayName": "Injector",
+  "description": "VSCode extension with Vue.js webview for CICS/IMS injection functionality",
+  "version": "0.0.5",
+  "publisher": "injector",
+  "icon": "injector.svg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jimhoc94/pocExtension.git"
+  },
   "engines": {
     "vscode": "^1.74.0"
   },
   "categories": [
     "Other"
   ],
+  "activationEvents": [
+    "onCommand:injector.openWebview"
+  ],
   "main": "./out/extension.js",
   "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "idem-explorer",
-          "title": "IDEM",
-          "icon": "media/compiler.svg"
-        }
-      ]
-    },
-    "views": {
-      "idem-explorer": [
-        {
-          "id": "nodeDependencies",
-          "name": "Node Dependencies",
-          "icon": "media/compiler.svg",
-          "contextualTitle": "Package Explorer"
-        },
-        {
-          "id": "compilation",
-          "name": "Compilations",
-          "icon": "media/compiler.svg",
-          "contextualTitle": "Toto Explorer"
-        }
-      ]
-    },
     "commands": [
       {
-        "command": "nodeDependencies.refreshEntry",
-        "title": "Refresh",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
-      },
-      {
-        "command": "nodeDependencies.addEntry",
-        "title": "Add"
-      },
-      {
-        "command": "nodeDependencies.editEntry",
-        "title": "Edit",
-        "icon": {
-          "light": "resources/light/edit.svg",
-          "dark": "resources/dark/edit.svg"
-        }
-      },
-      {
-        "command": "nodeDependencies.deleteEntry",
-        "title": "Delete"
-      },
-      {
-        "command": "compilation.refreshEntry",
-        "title": "Refresh",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
-      },
-      {
-        "command": "compilation.addEntry",
-        "title": "Add"
-      },
-      {
-        "command": "compilation.editEntry",
-        "title": "Edit",
-        "icon": {
-          "light": "resources/light/edit.svg",
-          "dark": "resources/dark/edit.svg"
-        }
-      },
-      {
-        "command": "compilation.deleteEntry",
-        "title": "Delete"
+        "command": "injector.openWebview",
+        "title": "Open Injector"
       }
     ],
-    "menus": {
-      "view/title": [
-        {
-          "command": "nodeDependencies.refreshEntry",
-          "when": "view == nodeDependencies",
-          "group": "navigation"
-        },
-        {
-          "command": "nodeDependencies.addEntry",
-          "when": "view == nodeDependencies"
-        },
-        {
-          "command": "compilation.refreshEntry",
-          "when": "view == compilation",
-          "group": "navigation"
-        },
-        {
-          "command": "compilation.addEntry",
-          "when": "view == compilation"
+    "configuration": {
+      "title": "Injector",
+      "properties": {
+        "injector.configurations": {
+          "type": "array",
+          "default": [],
+          "description": "CICS/IMS injection configurations",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Configuration name"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "CICS",
+                  "IMS"
+                ],
+                "description": "Configuration type"
+              },
+              "commAreaIn": {
+                "type": "string",
+                "description": "Input communication area"
+              },
+              "commAreaOut": {
+                "type": "string",
+                "description": "Output communication area"
+              },
+              "transactionName": {
+                "type": "string",
+                "description": "Transaction name"
+              },
+              "saveLocation": {
+                "type": "string",
+                "enum": [
+                  "workspace",
+                  "user"
+                ],
+                "description": "Where to save this configuration"
+              },
+              "cicsRegion": {
+                "type": "string",
+                "description": "CICS region name (CICS only)"
+              },
+              "programName": {
+                "type": "string",
+                "description": "Program name (CICS only)"
+              },
+              "commAreaLength": {
+                "type": "number",
+                "description": "Communication area length (CICS only)"
+              },
+              "imsRegionName": {
+                "type": "string",
+                "description": "IMS region name (IMS only)"
+              },
+              "messageType": {
+                "type": "string",
+                "description": "Message type (IMS only)"
+              },
+              "testWithAnswer": {
+                "type": "boolean",
+                "description": "Test with answer (IMS only)"
+              }
+            },
+            "required": [
+              "name",
+              "type"
+            ]
+          }
         }
-      ],
-      "view/item/context": [
-        {
-          "command": "nodeDependencies.editEntry",
-          "when": "view == nodeDependencies && viewItem == dependency",
-          "group": "inline"
-        },
-        {
-          "command": "nodeDependencies.deleteEntry",
-          "when": "view == nodeDependencies && viewItem == dependency"
-        },
-        {
-          "command": "compilation.editEntry",
-          "when": "view == compilation && viewItem == dependency",
-          "group": "inline"
-        },
-        {
-          "command": "compilation.deleteEntry",
-          "when": "view == compilation && viewItem == dependency"
-        }
-      ]
+      }
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run package",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint \"src/**/*.ts\""
+    "package": "npm run clean && npm run build-webview && npm run esbuild-base -- --minify",
+    "compile-watch": "npm run esbuild-base -- --watch",
+    "esbuild-base": "node esbuild.config.js",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "build-webview": "cd webview && npm run build",
+    "dev": "npm run build-webview && npm run esbuild-base -- --watch",
+    "build": "npm run build-webview && npm run esbuild-base -- --production",
+    "clean": "rimraf out && rimraf webview/dist",
+    "package-size": "vsce package --out injector.vsix && echo 'Package created: injector.vsix' && ls -lh injector.vsix"
   },
   "devDependencies": {
-    "@types/ftp": "^0.3.33",
-    "@types/mkdirp": "^0.5.2",
-    "@types/node": "^16.11.7",
-    "@types/rimraf": "^2.0.2",
-    "@types/vscode": "^1.73.0",
-    "@typescript-eslint/eslint-plugin": "^5.42.0",
-    "@typescript-eslint/parser": "^5.42.0",
-    "eslint": "^8.26.0",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "esbuild": "^0.19.0",
+    "eslint": "^8.28.0",
+    "rimraf": "^3.0.2",
     "typescript": "^4.9.4"
-  },
-  "dependencies": {
-    "ftp": "^0.3.10",
-    "jsonc-parser": "^0.4.2",
-    "minimist": "^1.2.6",
-    "mkdirp": "^0.5.1",
-    "rimraf": "^2.6.2",
-    "toto": "^2.8.2"
   }
 }
