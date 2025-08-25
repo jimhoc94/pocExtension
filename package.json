@@ -1,10 +1,10 @@
 {
   "name": "injector-extension",
   "displayName": "Injector",
-  "description": "VSCode extension with Vue.js webview for CICS/IMS injection functionality",
-  "version": "0.0.5",
-  "publisher": "injector",
-  "icon": "injector.svg",
+  "description": "CICS/IMS injection functionality",
+  "version": "1.0.2",
+  "publisher": "zLab",
+  "icon": "injector.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/jimhoc94/pocExtension.git"
@@ -16,14 +16,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:injector.openWebview"
+    "onCommand:zLab.injector.openWebview"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "injector.openWebview",
-        "title": "Open Injector"
+        "command": "zLab.injector.openWebview",
+        "title": "zLab: Open Injector"
       }
     ],
     "configuration": {

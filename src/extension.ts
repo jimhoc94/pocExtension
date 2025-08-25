@@ -1,14 +1,17 @@
-import * as vscode from 'vscode';
-import { InjectorWebviewProvider } from './injectorWebviewProvider';
+import * as vscode from "vscode";
+import { InjectorWebviewProvider } from "./injectorWebviewProvider";
 
 export function activate(context: vscode.ExtensionContext) {
-    const injectorProvider = new InjectorWebviewProvider(context);
-    
-    const disposable = vscode.commands.registerCommand('injector.openWebview', () => {
-        injectorProvider.show();
-    });
+  const injectorProvider = new InjectorWebviewProvider(context);
 
-    context.subscriptions.push(disposable);
+  const disposable = vscode.commands.registerCommand(
+    "zLab.injector.openWebview",
+    () => {
+      injectorProvider.show();
+    }
+  );
+
+  context.subscriptions.push(disposable);
 }
 
 export function deactivate() {}

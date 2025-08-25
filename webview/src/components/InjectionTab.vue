@@ -131,7 +131,7 @@
     <vscode-divider />
 
     <!-- Action buttons - Fixed height -->
-    <div class="h-[40px] flex items-center space-x-3 w-full">
+    <div class="h-[40px] flex items-center p-4 space-x-3 w-full">
       <vscode-button
         @click="$emit('execute-injection')"
         appearance="primary"
@@ -159,16 +159,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed } from "vue";
 
 // Props
 interface Configuration {
   name: string;
-  type: 'CICS' | 'IMS';
+  type: "CICS" | "IMS";
   commAreaIn: string;
   commAreaOut: string;
   transactionName: string;
-  saveLocation: 'workspace' | 'user';
+  saveLocation: "workspace" | "user";
   cicsRegion?: string;
   programName?: string;
   commAreaLength?: number;
@@ -185,9 +185,9 @@ const props = defineProps<{
 
 // Emits
 const emit = defineEmits<{
-  'selection-changed': [index: string];
-  'execute-injection': [];
-  'test-configuration': [];
+  "selection-changed": [index: string];
+  "execute-injection": [];
+  "test-configuration": [];
 }>();
 
 // Local state

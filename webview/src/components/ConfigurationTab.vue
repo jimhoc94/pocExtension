@@ -2,8 +2,7 @@
   <div class="space-y-6 w-full">
     <!-- Configuration List -->
     <div class="w-full">
-      <div class="flex items-center mb-4 w-full">
-        <h3 class="text-lg font-semibold">Configurations</h3>
+      <div class="flex items-center mb-4 p-4 w-full">
         <vscode-button
           @click="$emit('create-new')"
           appearance="primary"
@@ -60,8 +59,14 @@
                 title="Execute injection"
                 :disabled="isLoading"
               >
-                <span v-if="loadingConfigIndex !== getConfigurationIndex(config)">▶️</span>
-                <vscode-progress-ring v-else style="width: 14px; height: 14px;"></vscode-progress-ring>
+                <span
+                  v-if="loadingConfigIndex !== getConfigurationIndex(config)"
+                  >▶️</span
+                >
+                <vscode-progress-ring
+                  v-else
+                  style="width: 14px; height: 14px"
+                ></vscode-progress-ring>
               </button>
               <button
                 @click="$emit('delete-config', getConfigurationIndex(config))"
@@ -107,8 +112,14 @@
                 title="Execute injection"
                 :disabled="isLoading"
               >
-                <span v-if="loadingConfigIndex !== getConfigurationIndex(config)">▶️</span>
-                <vscode-progress-ring v-else style="width: 14px; height: 14px;"></vscode-progress-ring>
+                <span
+                  v-if="loadingConfigIndex !== getConfigurationIndex(config)"
+                  >▶️</span
+                >
+                <vscode-progress-ring
+                  v-else
+                  style="width: 14px; height: 14px"
+                ></vscode-progress-ring>
               </button>
               <button
                 @click="$emit('delete-config', getConfigurationIndex(config))"
@@ -129,11 +140,7 @@
       class="border border-[var(--vscode-widget-border)] rounded p-6 bg-[var(--vscode-textBlockQuote-background)]"
     >
       <h3 class="text-lg font-semibold mb-4">
-        {{
-          editingIndex !== -1
-            ? "Edit Configuration"
-            : "New Configuration"
-        }}
+        {{ editingIndex !== -1 ? "Edit Configuration" : "New Configuration" }}
       </h3>
 
       <div class="space-y-4">
@@ -177,18 +184,38 @@
             <textarea
               v-model="currentConfig.commAreaIn"
               rows="4"
-              placeholder="Input communication area"
-              class="w-full px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-input-border)] text-[var(--vscode-input-foreground)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--vscode-focusBorder)] font-mono text-sm resize-y"
+              placeholder="z/OS dataset name (e.g., HLQ.DATASET or HLQ.PDS(MEMBER))"
+              :class="{
+                'w-full px-3 py-2 bg-[var(--vscode-input-background)] border text-[var(--vscode-input-foreground)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--vscode-focusBorder)] font-mono text-sm resize-y': true,
+                'border-[var(--vscode-input-border)]': commAreaInValidation.isValid,
+                'border-[var(--vscode-inputValidation-errorBorder)] bg-[var(--vscode-inputValidation-errorBackground)]': !commAreaInValidation.isValid
+              }"
             ></textarea>
+            <div 
+              v-if="!commAreaInValidation.isValid" 
+              class="text-xs text-[var(--vscode-inputValidation-errorForeground)] mt-1 px-1"
+            >
+              {{ commAreaInValidation.error }}
+            </div>
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Comm Area Out</label>
             <textarea
               v-model="currentConfig.commAreaOut"
               rows="4"
-              placeholder="Output communication area"
-              class="w-full px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-input-border)] text-[var(--vscode-input-foreground)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--vscode-focusBorder)] font-mono text-sm resize-y"
+              placeholder="z/OS dataset name (e.g., HLQ.DATASET or HLQ.PDS(MEMBER))"
+              :class="{
+                'w-full px-3 py-2 bg-[var(--vscode-input-background)] border text-[var(--vscode-input-foreground)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--vscode-focusBorder)] font-mono text-sm resize-y': true,
+                'border-[var(--vscode-input-border)]': commAreaOutValidation.isValid,
+                'border-[var(--vscode-inputValidation-errorBorder)] bg-[var(--vscode-inputValidation-errorBackground)]': !commAreaOutValidation.isValid
+              }"
             ></textarea>
+            <div 
+              v-if="!commAreaOutValidation.isValid" 
+              class="text-xs text-[var(--vscode-inputValidation-errorForeground)] mt-1 px-1"
+            >
+              {{ commAreaOutValidation.error }}
+            </div>
           </div>
         </div>
 
@@ -233,16 +260,14 @@
               >
             </label>
           </div>
-          <p
-            class="text-xs text-[var(--vscode-descriptionForeground)] mt-2"
-          >
+          <p class="text-xs text-[var(--vscode-descriptionForeground)] mt-2">
             <span v-if="editingIndex !== -1"
               >Save location cannot be changed when editing an existing
               configuration.</span
             >
             <span v-else
-              >Workspace settings are specific to this project, User
-              settings are global to all projects.</span
+              >Workspace settings are specific to this project, User settings
+              are global to all projects.</span
             >
           </p>
         </div>
@@ -271,7 +296,9 @@
             </div>
           </div>
           <div class="mt-4">
-            <label class="block text-sm font-medium mb-2">Comm Area Length</label>
+            <label class="block text-sm font-medium mb-2"
+              >Comm Area Length</label
+            >
             <input
               v-model.number="currentConfig.commAreaLength"
               type="number"
@@ -286,7 +313,9 @@
           <h4 class="font-medium mb-3">IMS Specific</h4>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium mb-2">IMS Region Name</label>
+              <label class="block text-sm font-medium mb-2"
+                >IMS Region Name</label
+              >
               <input
                 v-model="currentConfig.imsRegionName"
                 type="text"
@@ -337,10 +366,7 @@
           >
             {{ editingIndex !== -1 ? "Update" : "Save" }} Configuration
           </vscode-button>
-          <vscode-button
-            @click="$emit('cancel-config')"
-            appearance="secondary"
-          >
+          <vscode-button @click="$emit('cancel-config')" appearance="secondary">
             Cancel
           </vscode-button>
         </div>
@@ -350,16 +376,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed } from "vue";
+import { validateCommAreaName, type ValidationResult } from "../utils/zosValidation";
 
 // Props
 interface Configuration {
   name: string;
-  type: 'CICS' | 'IMS';
+  type: "CICS" | "IMS";
   commAreaIn: string;
   commAreaOut: string;
   transactionName: string;
-  saveLocation: 'workspace' | 'user';
+  saveLocation: "workspace" | "user";
   cicsRegion?: string;
   programName?: string;
   commAreaLength?: number;
@@ -379,13 +406,13 @@ const props = defineProps<{
 
 // Emits
 const emit = defineEmits<{
-  'create-new': [];
-  'edit-config': [index: number];
-  'execute-config': [config: Configuration];
-  'delete-config': [index: number];
-  'save-config': [];
-  'cancel-config': [];
-  'type-change': [];
+  "create-new": [];
+  "edit-config": [index: number];
+  "execute-config": [config: Configuration];
+  "delete-config": [index: number];
+  "save-config": [];
+  "cancel-config": [];
+  "type-change": [];
 }>();
 
 // Computed properties
@@ -415,10 +442,21 @@ const workspaceConfigurations = computed(() => {
     });
 });
 
+// Validation computed properties
+const commAreaInValidation = computed(() => {
+  return validateCommAreaName(props.currentConfig.commAreaIn || '');
+});
+
+const commAreaOutValidation = computed(() => {
+  return validateCommAreaName(props.currentConfig.commAreaOut || '');
+});
+
 const isConfigValid = computed(() => {
   const name = props.currentConfig.name;
   const type = props.currentConfig.type;
-  return !!(name && name.trim() && type && type.trim());
+  const basicValid = !!(name && name.trim() && type && type.trim());
+  const areasValid = commAreaInValidation.value.isValid && commAreaOutValidation.value.isValid;
+  return basicValid && areasValid;
 });
 
 const getConfigurationIndex = (targetConfig: Configuration) => {

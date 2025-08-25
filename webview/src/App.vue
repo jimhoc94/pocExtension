@@ -18,7 +18,6 @@
         <vscode-tab-header slot="header" panel>Configuration</vscode-tab-header>
         <vscode-tab-header slot="header" panel>Injection</vscode-tab-header>
         <vscode-tab-header slot="header" panel>Results</vscode-tab-header>
-        <vscode-divider />
 
         <vscode-tab-panel panel>
           <br />

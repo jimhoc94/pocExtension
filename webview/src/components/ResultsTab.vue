@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4 w-full">
+  <div class="space-y-4 w-full p-4">
     <h3 class="text-lg font-semibold">Execution Results</h3>
 
     <div
@@ -27,9 +27,7 @@
           {{ result.success ? "Success" : "Failed" }}
         </span>
       </div>
-      <p class="text-sm mb-2">
-        {{ result.type }} - {{ result.configName }}
-      </p>
+      <p class="text-sm mb-2">{{ result.type }} - {{ result.configName }}</p>
       <pre
         class="bg-[var(--vscode-textCodeBlock-background)] p-2 rounded text-xs overflow-x-auto"
         >{{ result.message }}</pre

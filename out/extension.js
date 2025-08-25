@@ -327,9 +327,12 @@ Transaction: ${config.transactionName}`
 // src/extension.ts
 function activate(context) {
   const injectorProvider = new InjectorWebviewProvider(context);
-  const disposable = vscode2.commands.registerCommand("injector.openWebview", () => {
-    injectorProvider.show();
-  });
+  const disposable = vscode2.commands.registerCommand(
+    "zLab.injector.openWebview",
+    () => {
+      injectorProvider.show();
+    }
+  );
   context.subscriptions.push(disposable);
 }
 function deactivate() {

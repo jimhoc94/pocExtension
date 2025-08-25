@@ -358,3 +358,93 @@ cleanConfigurationForSerialization()     // Nettoyage intelligent par type
 ✅ Meilleure prise en charge des nouvelles versions de VS Code
 ✅ Aucun changement requis dans les templates Vue
 ✅ Build plus stable et performant
+
+## Validation z/OS (25 août 2025)
+
+### Fonctionnalité ajoutée
+- **Contrôle des champs Comm Area** : Validation en temps réel des champs `commAreaIn` et `commAreaOut` selon les règles IBM z/OS
+- **Feedback visuel** : Bordures colorées et messages d'erreur contextuels pour les noms de datasets invalides
+- **Prévention d'erreurs** : Bouton de sauvegarde désactivé tant que les noms de datasets ne respectent pas les standards
+
+### Règles de validation implémentées
+
+#### Noms de datasets z/OS
+- **Longueur maximale** : 44 caractères
+- **Structure minimale** : Au moins 2 segments séparés par des points (ex: `HLQ.DATASET`)
+- **Segment** : Maximum 8 caractères, premier caractère doit être lettre ou #, @, $
+- **Caractères autorisés** : Lettres, chiffres, #, @, $, trait d'union
+- **Interdictions** : Points consécutifs, point final, segments vides
+
+#### Membres PDS (entre parenthèses)
+- **Format** : `DATASET.NAME(MEMBER)`
+- **Membre** : Maximum 8 caractères, pas de trait d'union
+- **Premier caractère** : Lettre ou #, @, $
+- **Validation combinée** : Dataset ET membre validés séparément
+
+### Exemples valides
+```
+HLQ.DATASET
+USER.DEV.DATA  
+SYS1.PARMLIB
+TEST.PDS(MEMBER)
+DEV.SOURCE(COBOL01)
+#TEST.DATA
+$USER.WORK
+@PROD.FILES
+```
+
+### Architecture technique
+
+#### Fichiers ajoutés
+- **webview/src/utils/zosValidation.ts** : Fonctions de validation avec Zod
+  - `validateCommAreaName()` : Validation principale utilisant schémas Zod
+  - `validateZosDatasetName()` : Validation dataset simple avec Zod
+  - `validatePdsMemberName()` : Validation membre PDS avec Zod
+- **Dépendance** : `zod` pour validation de schémas TypeScript
+
+#### Intégration composant
+- **ConfigurationTab.vue** : 
+  - Import des fonctions de validation
+  - Computed properties `commAreaInValidation` et `commAreaOutValidation`
+  - Classes CSS conditionnelles pour feedback visuel
+  - Validation intégrée dans `isConfigValid`
+
+#### Interface utilisateur
+- **Placeholders** : Exemples de format z/OS dans les champs
+- **Validation temps réel** : Vérification à chaque saisie
+- **Feedback immédiat** : Messages d'erreur spécifiques sous les champs
+- **Prévention erreurs** : Bouton sauvegarde désactivé si invalide
+
+### Utilisation
+1. Saisir un nom de dataset dans Comm Area In/Out
+2. Validation automatique en temps réel
+3. Bordure rouge et message d'erreur si invalide
+4. Bordure verte si valide
+5. Sauvegarde possible uniquement si tous les champs sont valides
+
+**Conformité IBM** : Validation basée sur la documentation officielle IBM z/OS data set naming rules
+
+#### Avantages de Zod
+- **Type Safety** : Validation forte avec inférence de types TypeScript
+- **Composition** : Schémas composables et réutilisables (`zosSegmentSchema`, `pdsMemberSchema`, etc.)
+- **Messages d'erreur** : Messages contextuels et spécifiques par règle
+- **Performance** : Validation efficace avec `safeParse()`
+- **Maintenabilité** : Code déclaratif plus lisible que les validations manuelles
+
+#### Schémas Zod implémentés
+```typescript
+// Segment z/OS (max 8 chars, commence par lettre/#/@/$)
+zosSegmentSchema: z.string().min(1).max(8).refine(...)
+
+// Dataset z/OS (max 44 chars, min 2 segments, pas de ..)  
+zosDatasetSchema: z.string().max(44).refine(...)
+
+// Membre PDS (max 8 chars, pas de tirets)
+pdsMemberSchema: z.string().min(1).max(8).refine(...)
+
+// Format PDS complet DATASET(MEMBER)
+pdsFormatSchema: z.string().refine(...)
+
+// Union dataset OU format PDS
+commAreaNameSchema: z.union([zosDatasetSchema, pdsFormatSchema])
+```
