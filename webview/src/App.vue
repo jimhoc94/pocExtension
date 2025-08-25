@@ -10,12 +10,18 @@
         </p>
       </header>
 
-      <vscode-panels>
-        <vscode-panel-tab id="tab-1">Configuration</vscode-panel-tab>
-        <vscode-panel-tab id="tab-2">Injection</vscode-panel-tab>
-        <vscode-panel-tab id="tab-3">Results</vscode-panel-tab>
+      <vscode-tabs
+        :selected-index="selectedTabIndex"
+        @vsc-tabs-select="onTabChange"
+        panel
+      >
+        <vscode-tab-header slot="header" panel>Configuration</vscode-tab-header>
+        <vscode-tab-header slot="header" panel>Injection</vscode-tab-header>
+        <vscode-tab-header slot="header" panel>Results</vscode-tab-header>
+        <vscode-divider />
 
-        <vscode-panel-view id="view-1">
+        <vscode-tab-panel panel>
+          <br />
           <ConfigurationTab
             :configurations="configurations"
             :show-form="showNewConfigForm"
@@ -31,9 +37,10 @@
             @cancel-config="cancelConfiguration"
             @type-change="handleTypeChange"
           />
-        </vscode-panel-view>
+        </vscode-tab-panel>
 
-        <vscode-panel-view id="view-2">
+        <vscode-tab-panel panel>
+          <br />
           <InjectionTab
             :configurations="configurations"
             :selected-configuration-index="selectedConfigIndex"
@@ -42,21 +49,22 @@
             @execute-injection="executeInjection"
             @test-configuration="testConfiguration"
           />
-        </vscode-panel-view>
+        </vscode-tab-panel>
 
-        <vscode-panel-view id="view-3">
+        <vscode-tab-panel panel>
+          <br />
           <ResultsTab :results="results" />
-        </vscode-panel-view>
-      </vscode-panels>
+        </vscode-tab-panel>
+      </vscode-tabs>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
-import ConfigurationTab from './components/ConfigurationTab.vue';
-import InjectionTab from './components/InjectionTab.vue';
-import ResultsTab from './components/ResultsTab.vue';
+import ConfigurationTab from "./components/ConfigurationTab.vue";
+import InjectionTab from "./components/InjectionTab.vue";
+import ResultsTab from "./components/ResultsTab.vue";
 
 interface BaseConfig {
   name: string;
@@ -99,6 +107,7 @@ const selectedConfigIndex = ref("-1");
 const results = ref<Result[]>([]);
 const isLoading = ref(false);
 const loadingConfigIndex = ref(-1);
+const selectedTabIndex = ref(0);
 
 // Current configuration being edited/created
 const currentConfig = ref<Partial<Configuration>>({
@@ -390,10 +399,7 @@ const executeConfigurationDirectly = async (config: Configuration) => {
         config.name
       }\nTransaction: ${
         config.transactionName
-      }\nComm Area In: ${config.commAreaIn?.substring(
-        0,
-        100
-      )}...`,
+      }\nComm Area In: ${config.commAreaIn?.substring(0, 100)}...`,
     };
 
     results.value.unshift(result);
@@ -402,7 +408,7 @@ const executeConfigurationDirectly = async (config: Configuration) => {
       command: "injectionResult",
       data: result,
     });
-    
+
     // Switch to Results tab after execution
     switchToResultsTab();
   } catch (error) {
@@ -450,7 +456,7 @@ const executeInjection = async () => {
       command: "injectionResult",
       data: result,
     });
-    
+
     // Switch to Results tab after execution
     switchToResultsTab();
   } catch (error) {
@@ -477,12 +483,13 @@ const testConfiguration = () => {
   });
 };
 
+const onTabChange = (event: CustomEvent<{ selectedIndex: number }>) => {
+  selectedTabIndex.value = event.detail.selectedIndex;
+};
+
 const switchToResultsTab = () => {
-  // Get the results tab and activate it
-  const resultsTab = document.getElementById('tab-3');
-  if (resultsTab) {
-    resultsTab.click();
-  }
+  // Switch to Results tab (index 2)
+  selectedTabIndex.value = 2;
 };
 
 // Message handling from extension
@@ -513,13 +520,13 @@ onMounted(() => {
 
 <style>
 /* Override VS Code component styles to work better with Tailwind */
-vscode-text-field,
-vscode-text-area,
-vscode-dropdown {
+vscode-textfield,
+vscode-textarea,
+vscode-single-select {
   width: 100%;
 }
 
-vscode-panels {
+vscode-tabs {
   width: 100%;
 }
 

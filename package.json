@@ -2,8 +2,9 @@
   "name": "injector-extension",
   "displayName": "Injector",
   "description": "VSCode extension with Vue.js webview for CICS/IMS injection functionality",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "publisher": "injector",
+  "icon": "injector.svg",
   "repository": {
     "type": "git",
     "url": "https://github.com/example/injector-extension.git"

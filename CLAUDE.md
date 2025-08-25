@@ -31,7 +31,7 @@ compilation/
 - **Extension VSCode** : TypeScript
 - **Webview** : Vue.js 3 + TypeScript
 - **Styling** : Tailwind CSS
-- **Composants** : VS Code UI Toolkit
+- **Composants** : VS Code Elements (@vscode-elements/elements)
 - **Build** : Vite (webview) + tsc (extension)
 
 ## Fonctionnalités
@@ -343,3 +343,18 @@ cleanConfigurationForSerialization()     // Nettoyage intelligent par type
 ✅ UX optimisée pour développeurs CICS/IMS
 
 **Production ready** : L'extension est maintenant complètement opérationnelle avec une interface utilisateur professionnelle et une architecture technique solide.
+
+## Migration vers VS Code Elements (25 août 2025)
+
+### Changements apportés
+- **Migration dépendance** : Remplacement de `@vscode/webview-ui-toolkit` (dépréciée) par `@vscode-elements/elements@1.17.0`
+- **Import simplifié** : Utilisation d'un import unique `import '@vscode-elements/elements'` au lieu d'imports individuels
+- **Compatibilité** : Tous les composants existants (vscode-button, vscode-text-field, vscode-panels, etc.) restent identiques
+- **Maintenance** : Passage vers une bibliothèque activement maintenue par la communauté
+
+### Avantages
+✅ Bibliothèque maintenue et à jour
+✅ Même API que l'ancienne version
+✅ Meilleure prise en charge des nouvelles versions de VS Code
+✅ Aucun changement requis dans les templates Vue
+✅ Build plus stable et performant
