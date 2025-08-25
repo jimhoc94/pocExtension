@@ -1,8 +1,13 @@
 {
   "name": "injector-extension",
   "displayName": "Injector",
-  "description": "VSCode extension with Vue.js webview for injection functionality",
+  "description": "VSCode extension with Vue.js webview for CICS/IMS injection functionality",
   "version": "0.0.1",
+  "publisher": "injector",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/example/injector-extension.git"
+  },
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -36,7 +41,10 @@
               },
               "type": {
                 "type": "string",
-                "enum": ["CICS", "IMS"],
+                "enum": [
+                  "CICS",
+                  "IMS"
+                ],
                 "description": "Configuration type"
               },
               "commAreaIn": {
@@ -53,7 +61,10 @@
               },
               "saveLocation": {
                 "type": "string",
-                "enum": ["workspace", "user"],
+                "enum": [
+                  "workspace",
+                  "user"
+                ],
                 "description": "Where to save this configuration"
               },
               "cicsRegion": {
@@ -81,27 +92,39 @@
                 "description": "Test with answer (IMS only)"
               }
             },
-            "required": ["name", "type"]
+            "required": [
+              "name",
+              "type"
+            ]
           }
         }
       }
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run package",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "package": "npm run clean && npm run build-webview && npm run esbuild-base -- --minify",
+    "compile-watch": "npm run esbuild-base -- --watch",
+    "esbuild-base": "node esbuild.config.js",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "build-webview": "cd webview && npm run build"
+    "build-webview": "cd webview && npm run build",
+    "dev": "npm run build-webview && npm run esbuild-base -- --watch",
+    "build": "npm run build-webview && npm run esbuild-base -- --production",
+    "clean": "rimraf out && rimraf webview/dist",
+    "package-size": "vsce package --out injector.vsix && echo 'Package created: injector.vsix' && ls -lh injector.vsix"
   },
   "devDependencies": {
-    "@types/vscode": "^1.74.0",
     "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
+    "esbuild": "^0.19.0",
     "eslint": "^8.28.0",
+    "rimraf": "^3.0.2",
     "typescript": "^4.9.4"
   }
 }
