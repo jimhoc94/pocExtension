@@ -7,7 +7,7 @@
   "icon": "injector.svg",
   "repository": {
     "type": "git",
-    "url": "https://github.com/example/injector-extension.git"
+    "url": "https://github.com/jimhoc94/pocExtension.git"
   },
   "engines": {
     "vscode": "^1.74.0"
