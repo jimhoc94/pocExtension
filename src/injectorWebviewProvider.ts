@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { ZoweJclService, ZoweConnectionConfig, JclExecutionRequest, JclExecutionResult } from './services/zoweJclService';
 
 // Configuration interfaces
 interface BaseConfig {
@@ -10,6 +11,8 @@ interface BaseConfig {
     commAreaOut: string;
     transactionName: string;
     saveLocation: 'workspace' | 'user';
+    jclTemplate?: string;
+    zoweConnection?: ZoweConnectionConfig;
 }
 
 interface CicsConfig extends BaseConfig {
@@ -30,8 +33,11 @@ type Configuration = CicsConfig | ImsConfig;
 
 export class InjectorWebviewProvider {
     private panel: vscode.WebviewPanel | undefined;
+    private zoweJclService: ZoweJclService;
 
-    constructor(private readonly context: vscode.ExtensionContext) {}
+    constructor(private readonly context: vscode.ExtensionContext) {
+        this.zoweJclService = new ZoweJclService();
+    }
 
     public show() {
         if (this.panel) {
@@ -55,6 +61,7 @@ export class InjectorWebviewProvider {
 
         this.panel.onDidDispose(() => {
             this.panel = undefined;
+            this.zoweJclService.dispose();
         });
 
         // Handle messages from the webview
@@ -75,6 +82,14 @@ export class InjectorWebviewProvider {
 
                     case 'testConfiguration':
                         this.testConfiguration(message.data);
+                        return;
+
+                    case 'executeJcl':
+                        await this.executeJcl(message.data);
+                        return;
+
+                    case 'testZoweConnection':
+                        await this.testZoweConnection(message.data);
                         return;
 
                     case 'injectionResult':
@@ -359,14 +374,143 @@ export class InjectorWebviewProvider {
         }
     }
 
-    private testConfiguration(config: Configuration) {
+    private async testConfiguration(config: Configuration) {
         const details = config.type === 'CICS' 
             ? `CICS Region: ${config.cicsRegion}, Program: ${config.programName}, Comm Area Length: ${config.commAreaLength}`
             : `IMS Region: ${config.imsRegionName}, Message Type: ${config.messageType}, Test with Answer: ${config.testWithAnswer}`;
 
-        vscode.window.showInformationMessage(
-            `Testing configuration: ${config.name} (${config.type})\n${details}\nTransaction: ${config.transactionName}`
-        );
+        // If JCL template and Zowe connection are configured, execute JCL
+        if (config.jclTemplate && config.zoweConnection) {
+            await this.executeJcl({
+                configuration: config,
+                jclTemplate: config.jclTemplate,
+                zoweConnection: config.zoweConnection
+            });
+        } else {
+            vscode.window.showInformationMessage(
+                `Testing configuration: ${config.name} (${config.type})\n${details}\nTransaction: ${config.transactionName}`
+            );
+        }
+    }
+
+    private async executeJcl(data: { configuration: Configuration; jclTemplate: string; zoweConnection: ZoweConnectionConfig }) {
+        try {
+            const { configuration, jclTemplate, zoweConnection } = data;
+            
+            // Generate JCL by replacing placeholders
+            const processedJcl = this.processJclTemplate(jclTemplate, configuration);
+            
+            const request: JclExecutionRequest = {
+                jcl: processedJcl,
+                connectionConfig: zoweConnection,
+                configurationName: configuration.name
+            };
+
+            // Send status to webview
+            this.panel?.webview.postMessage({
+                command: 'jclExecutionStarted',
+                data: { configurationName: configuration.name }
+            });
+
+            const result = await this.zoweJclService.executeJcl(request);
+
+            // Send result back to webview
+            this.panel?.webview.postMessage({
+                command: 'jclExecutionCompleted',
+                data: {
+                    configurationName: configuration.name,
+                    result: result
+                }
+            });
+
+            // Show notification
+            if (result.success) {
+                vscode.window.showInformationMessage(
+                    `JCL execution completed successfully for ${configuration.name}\nJob: ${result.jobName}(${result.jobId})\nReturn Code: ${result.returnCode}`
+                );
+            } else {
+                vscode.window.showErrorMessage(
+                    `JCL execution failed for ${configuration.name}\nError: ${result.error}`
+                );
+            }
+
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            vscode.window.showErrorMessage(`JCL execution error: ${errorMessage}`);
+            
+            this.panel?.webview.postMessage({
+                command: 'jclExecutionCompleted',
+                data: {
+                    configurationName: data.configuration.name,
+                    result: {
+                        success: false,
+                        error: errorMessage,
+                        timestamp: new Date().toISOString()
+                    }
+                }
+            });
+        }
+    }
+
+    private async testZoweConnection(connectionConfig: ZoweConnectionConfig) {
+        try {
+            const success = await this.zoweJclService.testConnection(connectionConfig);
+            
+            this.panel?.webview.postMessage({
+                command: 'zoweConnectionTested',
+                data: { success: success }
+            });
+
+            if (success) {
+                vscode.window.showInformationMessage('Zowe connection test successful!');
+            } else {
+                vscode.window.showErrorMessage('Zowe connection test failed!');
+            }
+            
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            vscode.window.showErrorMessage(`Connection test error: ${errorMessage}`);
+            
+            this.panel?.webview.postMessage({
+                command: 'zoweConnectionTested',
+                data: { success: false, error: errorMessage }
+            });
+        }
+    }
+
+    private processJclTemplate(template: string, config: Configuration): string {
+        let processedJcl = template;
+        
+        // Replace common placeholders
+        processedJcl = processedJcl.replace(/\{NAME\}/g, config.name);
+        processedJcl = processedJcl.replace(/\{TYPE\}/g, config.type);
+        processedJcl = processedJcl.replace(/\{TRANSACTION\}/g, config.transactionName);
+        processedJcl = processedJcl.replace(/\{COMM_AREA_IN\}/g, config.commAreaIn);
+        processedJcl = processedJcl.replace(/\{COMM_AREA_OUT\}/g, config.commAreaOut);
+        
+        // Replace CICS specific placeholders
+        if (config.type === 'CICS') {
+            const cicsConfig = config as CicsConfig;
+            processedJcl = processedJcl.replace(/\{CICS_REGION\}/g, cicsConfig.cicsRegion);
+            processedJcl = processedJcl.replace(/\{PROGRAM_NAME\}/g, cicsConfig.programName);
+            processedJcl = processedJcl.replace(/\{COMM_AREA_LENGTH\}/g, cicsConfig.commAreaLength.toString());
+        }
+        
+        // Replace IMS specific placeholders
+        if (config.type === 'IMS') {
+            const imsConfig = config as ImsConfig;
+            processedJcl = processedJcl.replace(/\{IMS_REGION\}/g, imsConfig.imsRegionName);
+            processedJcl = processedJcl.replace(/\{MESSAGE_TYPE\}/g, imsConfig.messageType);
+            processedJcl = processedJcl.replace(/\{TEST_WITH_ANSWER\}/g, imsConfig.testWithAnswer.toString());
+        }
+        
+        // Replace date/time placeholders
+        const now = new Date();
+        processedJcl = processedJcl.replace(/\{TIMESTAMP\}/g, now.toISOString().replace(/[:.]/g, ''));
+        processedJcl = processedJcl.replace(/\{DATE\}/g, now.toISOString().substring(0, 10).replace(/-/g, ''));
+        processedJcl = processedJcl.replace(/\{TIME\}/g, now.toTimeString().substring(0, 8).replace(/:/g, ''));
+        
+        return processedJcl;
     }
 
     private handleInjectionResult(result: any) {

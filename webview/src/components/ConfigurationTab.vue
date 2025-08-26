@@ -345,6 +345,110 @@
           </div>
         </div>
 
+        <!-- JCL and Zowe Configuration Section -->
+        <div class="border-t pt-4">
+          <h4 class="font-medium mb-3">Mainframe JCL Execution (Optional)</h4>
+          <p class="text-xs text-[var(--vscode-descriptionForeground)] mb-4">
+            Configure JCL template and z/OSMF connection to enable automatic job execution on mainframe.
+          </p>
+          
+          <!-- JCL Template -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">JCL Template</label>
+            <textarea
+              v-model="currentConfig.jclTemplate"
+              rows="8"
+              placeholder="//JOBNAME JOB (ACCOUNT),'DESCRIPTION',CLASS=A,MSGCLASS=H
+//STEP1 EXEC PGM={PROGRAM_NAME}
+//SYSIN DD *
+{COMM_AREA_IN}
+/*
+//SYSOUT DD SYSOUT=*
+
+Available placeholders:
+{NAME}, {TYPE}, {TRANSACTION}, {COMM_AREA_IN}, {COMM_AREA_OUT}
+{CICS_REGION}, {PROGRAM_NAME}, {COMM_AREA_LENGTH} (CICS only)
+{IMS_REGION}, {MESSAGE_TYPE}, {TEST_WITH_ANSWER} (IMS only)
+{TIMESTAMP}, {DATE}, {TIME}"
+              class="w-full px-3 py-2 bg-[var(--vscode-input-background)] border border-[var(--vscode-input-border)] text-[var(--vscode-input-foreground)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--vscode-focusBorder)] font-mono text-sm resize-y"
+            ></textarea>
+            <div class="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
+              Use placeholders like {NAME}, {PROGRAM_NAME}, {COMM_AREA_IN} that will be replaced with actual values.
+            </div>
+          </div>
+
+          <!-- Zowe Connection Configuration -->
+          <div class="bg-[var(--vscode-textCodeBlock-background)] p-4 rounded">
+            <div class="flex items-center justify-between mb-3">
+              <h5 class="font-medium">z/OSMF Connection</h5>
+              <vscode-button 
+                @click="$emit('test-zowe-connection')"
+                appearance="secondary"
+                :disabled="!currentConfig.zoweConnection?.hostname"
+                class="text-xs"
+              >
+                Test Connection
+              </vscode-button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Hostname</label>
+                <input
+                  v-model="currentConfig.zoweConnection!.hostname"
+                  type="text"
+                  placeholder="z/OSMF hostname (e.g., zos.example.com)"
+                  class="w-full px-3 py-1 bg-[var(--vscode-input-background)] border border-[var(--vscode-input-border)] text-[var(--vscode-input-foreground)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--vscode-focusBorder)]"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Port</label>
+                <input
+                  v-model.number="currentConfig.zoweConnection!.port"
+                  type="number"
+                  placeholder="443"
+                  class="w-full px-3 py-1 bg-[var(--vscode-input-background)] border border-[var(--vscode-input-border)] text-[var(--vscode-input-foreground)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--vscode-focusBorder)]"
+                />
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Username</label>
+                <input
+                  v-model="currentConfig.zoweConnection!.user"
+                  type="text"
+                  placeholder="z/OS username"
+                  class="w-full px-3 py-1 bg-[var(--vscode-input-background)] border border-[var(--vscode-input-border)] text-[var(--vscode-input-foreground)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--vscode-focusBorder)]"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Password</label>
+                <input
+                  v-model="currentConfig.zoweConnection!.password"
+                  type="password"
+                  placeholder="z/OS password"
+                  class="w-full px-3 py-1 bg-[var(--vscode-input-background)] border border-[var(--vscode-input-border)] text-[var(--vscode-input-foreground)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--vscode-focusBorder)]"
+                />
+              </div>
+            </div>
+            
+            <div class="mt-4">
+              <label class="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  v-model="currentConfig.zoweConnection!.rejectUnauthorized"
+                  class="rounded"
+                />
+                <span class="text-sm font-medium">Verify SSL certificates</span>
+              </label>
+              <div class="text-xs text-[var(--vscode-descriptionForeground)] mt-1 ml-6">
+                Uncheck for development environments with self-signed certificates
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Debug info (temporary) -->
         <div
           class="text-xs bg-[var(--vscode-textCodeBlock-background)] p-2 rounded"
@@ -379,6 +483,14 @@
 import { computed } from "vue";
 import { validateCommAreaName, type ValidationResult } from "../utils/zosValidation";
 
+interface ZoweConnectionConfig {
+  hostname: string;
+  port: number;
+  user: string;
+  password: string;
+  rejectUnauthorized: boolean;
+}
+
 // Props
 interface Configuration {
   name: string;
@@ -393,6 +505,8 @@ interface Configuration {
   imsRegionName?: string;
   messageType?: string;
   testWithAnswer?: boolean;
+  jclTemplate?: string;
+  zoweConnection?: ZoweConnectionConfig;
 }
 
 const props = defineProps<{
@@ -413,6 +527,7 @@ const emit = defineEmits<{
   "save-config": [];
   "cancel-config": [];
   "type-change": [];
+  "test-zowe-connection": [];
 }>();
 
 // Computed properties

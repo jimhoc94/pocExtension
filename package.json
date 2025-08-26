@@ -91,6 +91,36 @@
               "testWithAnswer": {
                 "type": "boolean",
                 "description": "Test with answer (IMS only)"
+              },
+              "jclTemplate": {
+                "type": "string",
+                "description": "JCL template for mainframe job execution"
+              },
+              "zoweConnection": {
+                "type": "object",
+                "description": "Zowe connection configuration",
+                "properties": {
+                  "hostname": {
+                    "type": "string",
+                    "description": "z/OSMF hostname"
+                  },
+                  "port": {
+                    "type": "number",
+                    "description": "z/OSMF port"
+                  },
+                  "user": {
+                    "type": "string",
+                    "description": "Username for z/OSMF authentication"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Password for z/OSMF authentication"
+                  },
+                  "rejectUnauthorized": {
+                    "type": "boolean",
+                    "description": "Reject unauthorized certificates"
+                  }
+                }
               }
             },
             "required": [
@@ -127,5 +157,10 @@
     "eslint": "^8.28.0",
     "rimraf": "^3.0.2",
     "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "@zowe/core-for-zowe-sdk": "^8.26.2",
+    "@zowe/imperative": "^8.26.2",
+    "@zowe/zos-jobs-for-zowe-sdk": "^8.26.2"
   }
 }

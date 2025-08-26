@@ -35,6 +35,7 @@
             @save-config="saveConfiguration"
             @cancel-config="cancelConfiguration"
             @type-change="handleTypeChange"
+            @test-zowe-connection="testZoweConnection"
           />
         </vscode-tab-panel>
 
@@ -65,6 +66,14 @@ import ConfigurationTab from "./components/ConfigurationTab.vue";
 import InjectionTab from "./components/InjectionTab.vue";
 import ResultsTab from "./components/ResultsTab.vue";
 
+interface ZoweConnectionConfig {
+  hostname: string;
+  port: number;
+  user: string;
+  password: string;
+  rejectUnauthorized: boolean;
+}
+
 interface BaseConfig {
   name: string;
   type: "CICS" | "IMS";
@@ -72,6 +81,8 @@ interface BaseConfig {
   commAreaOut: string;
   transactionName: string;
   saveLocation: "workspace" | "user";
+  jclTemplate?: string;
+  zoweConnection?: ZoweConnectionConfig;
 }
 
 interface CicsConfig extends BaseConfig {
@@ -122,6 +133,14 @@ const currentConfig = ref<Partial<Configuration>>({
   imsRegionName: "",
   messageType: "",
   testWithAnswer: false,
+  jclTemplate: "",
+  zoweConnection: {
+    hostname: "",
+    port: 443,
+    user: "",
+    password: "",
+    rejectUnauthorized: false,
+  },
 });
 
 // Original configuration for edit tracking
@@ -210,6 +229,14 @@ const resetCurrentConfig = () => {
     imsRegionName: "",
     messageType: "",
     testWithAnswer: false,
+    jclTemplate: "",
+    zoweConnection: {
+      hostname: "",
+      port: 443,
+      user: "",
+      password: "",
+      rejectUnauthorized: false,
+    },
   };
 };
 
@@ -325,6 +352,24 @@ const cleanConfigurationForSerialization = (config: any) => {
       transactionName: config.transactionName || "",
       saveLocation: config.saveLocation,
     };
+
+    // Add JCL template if present
+    if (config.jclTemplate !== undefined && config.jclTemplate !== "") {
+      cleaned.jclTemplate = config.jclTemplate;
+    }
+
+    // Add Zowe connection if present and valid
+    if (config.zoweConnection && config.zoweConnection.hostname) {
+      cleaned.zoweConnection = {
+        hostname: config.zoweConnection.hostname,
+        port: config.zoweConnection.port || 443,
+        user: config.zoweConnection.user || "",
+        password: config.zoweConnection.password || "",
+        rejectUnauthorized: config.zoweConnection.rejectUnauthorized !== undefined 
+          ? config.zoweConnection.rejectUnauthorized 
+          : false,
+      };
+    }
 
     // Add type-specific fields based on configuration type
     if (config.type === "CICS") {
@@ -476,9 +521,30 @@ const executeInjection = async () => {
 const testConfiguration = () => {
   if (!selectedConfig.value) return;
 
+  // If JCL and Zowe config are present, execute JCL
+  if (selectedConfig.value.jclTemplate && selectedConfig.value.zoweConnection?.hostname) {
+    vscode.postMessage({
+      command: "executeJcl",
+      data: {
+        configuration: cleanConfigurationForSerialization(selectedConfig.value),
+        jclTemplate: selectedConfig.value.jclTemplate,
+        zoweConnection: selectedConfig.value.zoweConnection,
+      },
+    });
+  } else {
+    vscode.postMessage({
+      command: "testConfiguration",
+      data: cleanConfigurationForSerialization(selectedConfig.value),
+    });
+  }
+};
+
+const testZoweConnection = () => {
+  if (!currentConfig.value.zoweConnection?.hostname) return;
+  
   vscode.postMessage({
-    command: "testConfiguration",
-    data: cleanConfigurationForSerialization(selectedConfig.value),
+    command: "testZoweConnection",
+    data: currentConfig.value.zoweConnection,
   });
 };
 
@@ -499,6 +565,33 @@ window.addEventListener("message", (event) => {
       if (message.data) {
         configurations.value = message.data;
       }
+      break;
+    
+    case "jclExecutionStarted":
+      // Handle JCL execution started
+      console.log(`JCL execution started for ${message.data.configurationName}`);
+      break;
+    
+    case "jclExecutionCompleted":
+      // Handle JCL execution completed
+      const jclResult = message.data.result;
+      const result: Result = {
+        timestamp: new Date().toLocaleString(),
+        success: jclResult.success,
+        type: "JCL",
+        configName: message.data.configurationName,
+        message: jclResult.success 
+          ? `JCL execution successful\nJob: ${jclResult.jobName}(${jclResult.jobId})\nReturn Code: ${jclResult.returnCode}\n\nOutput:\n${jclResult.output || 'No output available'}`
+          : `JCL execution failed\nError: ${jclResult.error}`,
+      };
+      results.value.unshift(result);
+      switchToResultsTab();
+      break;
+    
+    case "zoweConnectionTested":
+      // Handle Zowe connection test result
+      const success = message.data.success;
+      console.log(`Zowe connection test ${success ? 'successful' : 'failed'}`);
       break;
   }
 });
